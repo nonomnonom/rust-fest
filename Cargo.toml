@@ -1,0 +1,25 @@
+[package]
+name = "rust-fest"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "A collection of essential Rust utility types, inspired by TypeFest."
+readme = "README.md"
+license = "MIT OR CC0-1.0"
+repository = "https://github.com/nonomnonom/rust-fest"
+keywords = ["types", "utilities", "newtype", "nonempty", "type-safety"]
+categories = ["rust-patterns", "data-structures", "no-std"]
+include = ["src/**", "examples/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "CHANGELOG.md", "LICENSE-*"]
+
+[features]
+default = []
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { version = "1", optional = true, default-features = false, features = ["alloc", "derive"] }
+
+[dev-dependencies]
+serde_json = "1"
+
+[package.metadata.docs.rs]
+all-features = true
