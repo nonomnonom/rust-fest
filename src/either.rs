@@ -16,8 +16,13 @@
 ///
 /// With the `serde` feature, the representation is externally tagged, for
 /// example `{"Left": 42}` or `{"Right": "ferris"}` in JSON.
+///
+/// When both alternatives are iterators with the same item type, this type is
+/// also an iterator. Enable `either` for conversions to and from the `either`
+/// crate's type via [`Into::into`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum Either<L, R> {
     /// A value of the first alternative.
     Left(L),
@@ -64,6 +69,105 @@ impl<T> Either<T, T> {
     pub fn into_inner(self) -> T {
         match self {
             Self::Left(value) | Self::Right(value) => value,
+        }
+    }
+}
+
+impl<L, R> Iterator for Either<L, R>
+where
+    L: Iterator,
+    R: Iterator<Item = L::Item>,
+{
+    type Item = L::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Left(iter) => iter.next(),
+            Self::Right(iter) => iter.next(),
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match self {
+            Self::Left(iter) => iter.size_hint(),
+            Self::Right(iter) => iter.size_hint(),
+        }
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        match self {
+            Self::Left(iter) => iter.nth(n),
+            Self::Right(iter) => iter.nth(n),
+        }
+    }
+
+    fn fold<B, F>(self, init: B, f: F) -> B
+    where
+        F: FnMut(B, Self::Item) -> B,
+    {
+        match self {
+            Self::Left(iter) => iter.fold(init, f),
+            Self::Right(iter) => iter.fold(init, f),
+        }
+    }
+}
+
+impl<L, R> DoubleEndedIterator for Either<L, R>
+where
+    L: DoubleEndedIterator,
+    R: DoubleEndedIterator<Item = L::Item>,
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Left(iter) => iter.next_back(),
+            Self::Right(iter) => iter.next_back(),
+        }
+    }
+
+    fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+        match self {
+            Self::Left(iter) => iter.nth_back(n),
+            Self::Right(iter) => iter.nth_back(n),
+        }
+    }
+}
+
+impl<L, R> ExactSizeIterator for Either<L, R>
+where
+    L: ExactSizeIterator,
+    R: ExactSizeIterator<Item = L::Item>,
+{
+    fn len(&self) -> usize {
+        match self {
+            Self::Left(iter) => iter.len(),
+            Self::Right(iter) => iter.len(),
+        }
+    }
+}
+
+impl<L, R> core::iter::FusedIterator for Either<L, R>
+where
+    L: core::iter::FusedIterator,
+    R: core::iter::FusedIterator<Item = L::Item>,
+{
+}
+
+#[cfg(feature = "either")]
+impl<L, R> From<Either<L, R>> for ::either::Either<L, R> {
+    fn from(value: Either<L, R>) -> Self {
+        match value {
+            Either::Left(left) => Self::Left(left),
+            Either::Right(right) => Self::Right(right),
+        }
+    }
+}
+
+#[cfg(feature = "either")]
+impl<L, R> From<::either::Either<L, R>> for Either<L, R> {
+    fn from(value: ::either::Either<L, R>) -> Self {
+        match value {
+            ::either::Either::Left(left) => Self::Left(left),
+            ::either::Either::Right(right) => Self::Right(right),
         }
     }
 }

@@ -7,6 +7,8 @@ extern crate alloc;
 
 mod either;
 mod non_empty;
+#[cfg(feature = "schemars")]
+mod schema;
 #[cfg(feature = "serde")]
 mod serde_impl;
 mod tagged;

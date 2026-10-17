@@ -96,6 +96,47 @@ fn main() -> Result<(), rust_fest::EmptyError> {
 
 Constructors validate external values at runtime. Private fields and restricted mutation preserve the invariant afterward. Slice and string methods are available through read-only dereferencing. `NonEmptyVec` also supports owned, borrowed, and mutable iteration. `into_vec` and `into_string` explicitly remove the guarantee by consuming the wrapper.
 
+Use `NonEmptyVec::map` to transform a batch without checking its length again:
+
+```rust
+use rust_fest::NonEmptyVec;
+
+let names = NonEmptyVec::new("ferris").map(str::to_uppercase);
+assert_eq!(names.first(), "FERRIS");
+```
+
+### Alternative iterators
+
+`Either` implements `Iterator` when both branches yield the same item type. It also supports `DoubleEndedIterator`, `ExactSizeIterator`, and `FusedIterator` when both branches implement those traits.
+
+```rust
+use rust_fest::Either;
+
+fn numbers(reverse: bool) -> impl Iterator<Item = i32> {
+    if reverse { Either::Left((1..4).rev()) } else { Either::Right(1..4) }
+}
+assert_eq!(numbers(true).collect::<Vec<_>>(), [3, 2, 1]);
+```
+
+Enable the `either` feature to convert between `rust_fest::Either` and `either::Either` using `.into()`. These remain distinct types; the conversion connects to APIs such as `itertools::Itertools::partition_map`:
+
+```rust
+# #[cfg(feature = "either")]
+# {
+use itertools::Itertools;
+use rust_fest::Either;
+
+let (even, odd): (Vec<_>, Vec<_>) = (0..4).partition_map(|n| {
+    let choice = if n % 2 == 0 { Either::Left(n) } else { Either::Right(n) };
+    choice.into()
+});
+assert_eq!(even, [0, 2]);
+assert_eq!(odd, [1, 3]);
+# }
+```
+
+Add `itertools` separately to use that API; rust-fest does not depend on it at runtime.
+
 ## Serde support
 
 Enable the optional integration when using these types in serialized data:
@@ -122,11 +163,44 @@ rust-fest = { version = "0.1", features = ["serde"] }
 # Ok::<(), serde_json::Error>(())
 ```
 
-Serde is the only optional runtime dependency; its derive support is enabled with this feature. `serde_json` in this example is a separate application dependency. Serialization round trips and rejection of invalid inputs are tested.
+The `serde` feature enables Serde and its derive support. `serde_json` in this example is a separate application dependency. Serialization round trips and rejection of invalid inputs are tested.
+
+## JSON Schema support
+
+Enable `schemars` for `JsonSchema` implementations on all four utility types. Add Schemars 1.x to your application when deriving schemas for your own payloads:
+
+```toml
+[dependencies]
+rust-fest = { version = "0.1.1", features = ["serde", "schemars"] }
+schemars = "1.2"
+```
+
+```rust
+# #[cfg(feature = "schemars")]
+# {
+use rust_fest::{NonEmptyString, NonEmptyVec};
+use schemars::{JsonSchema, schema_for};
+
+#[derive(JsonSchema)]
+struct Job {
+    steps: NonEmptyVec<NonEmptyString>,
+}
+let schema = schema_for!(Job);
+assert!(schema.as_object().is_some());
+# }
+```
+
+`NonEmptyVec` adds `minItems: 1`; `NonEmptyString` adds `minLength: 1`. `Tagged` uses its inner schema without requiring schema traits on the tag. `Either` describes the existing externally tagged Serde format. Schema generation works independently of the `serde` feature; it does not perform runtime validation. Generate a complete example with `cargo run --example json_schema --features schemars`.
+
+| Feature | Integration | Default |
+| --- | --- | --- |
+| `serde` | Serialization and checked deserialization | Off |
+| `either` | Conversions to and from `either` 1.x | Off |
+| `schemars` | JSON Schema generation with Schemars 1.x | Off |
 
 ## Platform support
 
-The library uses `core` and `alloc`, without relying on `std`. `Tagged` and `Either` do not allocate by themselves. The non-empty owned types need an allocator. No feature flag is required to use the crate in a `no_std` application; Serde support also works without `std`.
+The library uses `core` and `alloc`, without relying on `std`. `Tagged` and `Either` do not allocate by themselves. The non-empty owned types and schema generation need an allocator. No feature flag is required to use the crate in a `no_std` application; all optional integrations also work without `std`.
 
 ## When to use these types
 

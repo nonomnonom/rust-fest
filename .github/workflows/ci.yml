@@ -26,8 +26,11 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - run: cargo test --locked
       - run: cargo test --all-features --locked
+      - run: cargo test --features either --locked
+      - run: cargo test --features schemars --locked
       - run: cargo run --example usage --locked
       - run: cargo run --example api_payload --features serde --locked
+      - run: cargo run --example json_schema --features schemars --locked
 
   quality:
     name: Formatting, Clippy, docs, and packaging
@@ -56,3 +59,5 @@ jobs:
           targets: thumbv7em-none-eabi
       - run: cargo check --lib --target thumbv7em-none-eabi --no-default-features --locked
       - run: cargo check --lib --target thumbv7em-none-eabi --all-features --locked
+      - run: cargo check --lib --target thumbv7em-none-eabi --features schemars --locked
+      - run: cargo check --lib --target thumbv7em-none-eabi --features either --locked

@@ -82,6 +82,17 @@ impl<T> NonEmptyVec<T> {
     pub fn into_vec(self) -> Vec<T> {
         self.0
     }
+
+    /// Transforms every element in order, preserving the non-empty guarantee.
+    ///
+    /// ```
+    /// use rust_fest::NonEmptyVec;
+    /// let names = NonEmptyVec::new("ferris").map(str::to_uppercase);
+    /// assert_eq!(names.first(), "FERRIS");
+    /// ```
+    pub fn map<U>(self, map: impl FnMut(T) -> U) -> NonEmptyVec<U> {
+        NonEmptyVec(self.0.into_iter().map(map).collect())
+    }
 }
 
 impl<T> TryFrom<Vec<T>> for NonEmptyVec<T> {
