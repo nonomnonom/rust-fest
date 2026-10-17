@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-Initial release of Rust Fest, a collection of utility types inspired by TypeFest.
+Initial release of Rust Fest, a collection of essential Rust utility types.
 
 - `Tagged<T, Tag>` gives values distinct compile-time identities without storing a tag.
 - `NonEmptyVec<T>` guarantees at least one element, including after mutation.
@@ -11,3 +11,5 @@ Initial release of Rust Fest, a collection of utility types inspired by TypeFest
 - Optional `serde` support preserves non-empty validation during deserialization.
 - Supports `no_std` with `alloc`, stable Rust 1.85+, and zero dependencies by default.
 - Licensed under MIT OR CC0-1.0.
+
+See [the release changeset](changesets/0.1.0.md) for use cases, validation, and compatibility details.

@@ -27,6 +27,7 @@ jobs:
       - run: cargo test --locked
       - run: cargo test --all-features --locked
       - run: cargo run --example usage --locked
+      - run: cargo run --example api_payload --features serde --locked
 
   quality:
     name: Formatting, Clippy, docs, and packaging

@@ -3,13 +3,13 @@ name = "rust-fest"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
-description = "A collection of essential Rust utility types, inspired by TypeFest."
+description = "Essential Rust utility types. no_std + alloc, optional Serde."
 readme = "README.md"
 license = "MIT OR CC0-1.0"
 repository = "https://github.com/nonomnonom/rust-fest"
 keywords = ["types", "utilities", "newtype", "nonempty", "type-safety"]
 categories = ["rust-patterns", "data-structures", "no-std"]
-include = ["src/**", "examples/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "CHANGELOG.md", "LICENSE-*"]
+include = ["src/**", "examples/**", "tests/**", "changesets/**", "Cargo.toml", "Cargo.lock", "README.md", "CHANGELOG.md", "LICENSE-*"]
 
 [features]
 default = []
@@ -23,3 +23,7 @@ serde_json = "1"
 
 [package.metadata.docs.rs]
 all-features = true
+
+[[example]]
+name = "api_payload"
+required-features = ["serde"]

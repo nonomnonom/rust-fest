@@ -1,6 +1,6 @@
 # Rust Fest 🦀
 
-A collection of essential Rust utility types, inspired by [TypeFest](https://github.com/sindresorhus/type-fest).
+A collection of essential Rust utility types.
 
 Rust Fest packages small, reusable types for expressing intent and keeping invalid states out of application code. It supports Rust 1.85+, works with `no_std` + `alloc`, has no dependencies by default, and forbids unsafe code.
 
@@ -128,11 +128,16 @@ Serde is the only optional runtime dependency; its derive support is enabled wit
 
 The library uses `core` and `alloc`, without relying on `std`. `Tagged` and `Either` do not allocate by themselves. The non-empty owned types need an allocator. No feature flag is required to use the crate in a `no_std` application; Serde support also works without `std`.
 
-## Inspired by TypeFest, designed for Rust
+## When to use these types
 
-TypeFest offers reusable TypeScript types such as `Tagged`, `NonEmptyString`, and `NonEmptyTuple`. Rust Fest adapts the idea to Rust's nominal types, enums, ownership, and checked constructors.
+- **Domain IDs:** distinguish `UserId` from `OrderId` even when both are stored as `u64`.
+- **Batches and workflows:** require at least one recipient, task, or processing step with `NonEmptyVec`.
+- **API payloads and configuration:** reject empty values during Serde deserialization before application logic runs.
+- **Alternative inputs:** accept an ID or a name using `Either`, with exhaustive handling of each case.
 
-This is an independent project, with no affiliation or API compatibility claim. TypeScript's structural transformations such as `Pick`, `Omit`, and `PartialDeep` do not translate directly into generic Rust type aliases. They are outside this initial API. Rust's existing `Option`, `Result`, arrays, and shared references already cover many other cases, so this crate does not rename them.
+Use `Option` for optional values and `Result` for failures. Use your own enum when variants deserve domain-specific names. Non-empty values only guarantee presence; bounds, email syntax, whitespace rules, authorization, and other domain checks belong in your application.
+
+For a complete typed notification example, run `cargo run --example usage`. For checked JSON input and round-trip serialization, run `cargo run --example api_payload --features serde`.
 
 ## Development
 
@@ -140,6 +145,7 @@ Clone the repository and use Rust 1.85 or newer. For local integration in anothe
 
 ```sh
 cargo run --example usage
+cargo run --example api_payload --features serde
 cargo test
 cargo test --all-features
 cargo fmt --all -- --check
